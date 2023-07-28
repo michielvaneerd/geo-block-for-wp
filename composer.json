@@ -1,0 +1,14 @@
+{
+    "name": "michielve/my-geo-block",
+    "autoload": {
+        "psr-4": {
+            "Michielve\\MyGeoBlock\\": "src/"
+        }
+    },
+    "config": {
+        "vendor-dir": "lib"
+    },
+    "require": {
+        "geoip2/geoip2": "~2.0"
+    }
+}
