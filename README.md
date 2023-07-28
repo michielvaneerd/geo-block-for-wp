@@ -47,9 +47,11 @@ The last thing you need to do is to define the countries that _are_ or _aren't_ 
 
 Now just add the countries to the `wp-config.php` file, like below:
 
+    define('GEO_BLOCK_FOR_WP_CHECK', 'ALLOW');
+    
     define('GEO_BLOCK_FOR_WP_COUNTRIES', [
-	    'NL' => 'The Netherlands',
-        'BE' => 'Belgium'
+	    'NL'
+        'BE'
     ]);
 
 You can also set the message that users who don't have access will see by setting `GEO_BLOCK_FOR_WP_MESSAGE` in `wp-config.php`:
