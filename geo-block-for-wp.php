@@ -1,6 +1,15 @@
 <?php
 
-if (!defined('GEO_BLOCK_FOR_WP_CHECK') || !defined('GEO_BLOCK_FOR_WP_COUNTRIES')) {
+// Allowed contintent codes:
+// - AF – Africa
+// - AN – Antarctica
+// - AS – Asia
+// - EU – Europe
+// - NA – North America
+// - OC – Oceania
+// - SA – South America
+
+if (!defined('GEO_BLOCK_FOR_WP_CHECK') || (!defined('GEO_BLOCK_FOR_WP_COUNTRIES') && !defined('GEO_BLOCK_FOR_WP_CONTINENTS'))) {
     return;
 }
 
@@ -31,41 +40,59 @@ function geo_block_for_wp_get_ip()
     return $ip;
 }
 
-function geo_block_for_wp_get_message()
+function geo_block_for_wp_die($customMessage = null)
 {
-    if (defined('GEO_BLOCK_FOR_WP_MESSAGE')) {
-        return GEO_BLOCK_FOR_WP_MESSAGE;
-    }
-    return 'Forbidden';
+    wp_die(!empty($customMessage) ? $customMessage : (defined('GEO_BLOCK_FOR_WP_MESSAGE') ? GEO_BLOCK_FOR_WP_MESSAGE : 'Forbidden'), 'Forbidden', ['response' => 403]);
 }
 
-$reader = new Reader(plugin_dir_path(__FILE__) . '/GeoLite2-Country.mmdb');
-
-try {
-    // 178.85.217.98 = NL
-    // 155.23.45.23 = US
-    $record = $reader->country(geo_block_for_wp_get_ip());
-    //$record = $reader->country('155.23.45.23');
-    //$record = $reader->country('155.23.45.23');
-
-    if (in_array($record->country->isoCode, GEO_BLOCK_FOR_WP_COUNTRIES)) {
-        // We have a country that is defined.
+function geo_block_for_wp_handle($countryOrContinentCodes, $currentCode)
+{
+    if (in_array($currentCode, $countryOrContinentCodes)) {
+        // We have a country or continent that is defined.
         if (GEO_BLOCK_FOR_WP_CHECK === 'BLOCK') {
-            wp_die(geo_block_for_wp_get_message(), 'Forbidden', ['response' => 403]);
+            geo_block_for_wp_die();
         } else {
-            // We have defined allowed countries, so this is okay.
+            // We have defined allowed countries or continents, so this is okay.
         }
     } else {
-        // We have a country that is NOT defined
+        // We have a country or continent that is NOT defined
         if (GEO_BLOCK_FOR_WP_CHECK === 'ALLOW') {
-            wp_die(geo_block_for_wp_get_message(), 'Forbidden', ['response' => 403]);
+            geo_block_for_wp_die();
         } else {
-            // We have defined blocked countries, so this is okay.
+            // We have defined blocked countries or continents, so this is okay.
         }
     }
+}
+
+try {
+
+    $reader = new Reader(plugin_dir_path(__FILE__) . '/GeoLite2-Country.mmdb');
+
+    $ip = geo_block_for_wp_get_ip();
+
+    if (empty($ip)) {
+        if (defined('GEO_BLOCK_FOR_WP_DIE_ON_NO_IP') && GEO_BLOCK_FOR_WP_DIE_ON_NO_IP) {
+            geo_block_for_wp_die();
+        } else {
+            return;
+        }
+    }
+
+    $record = $reader->country($ip);
+    //$record = $reader->country('178.85.217.98'); // NL
+    //$record = $reader->country('155.23.45.23'); // US
+
+    if (defined('GEO_BLOCK_FOR_WP_CONTINENTS') && !empty(GEO_BLOCK_FOR_WP_CONTINENTS)) {
+        geo_block_for_wp_handle(GEO_BLOCK_FOR_WP_CONTINENTS, $record->continent->code);
+    } elseif (defined('GEO_BLOCK_FOR_WP_COUNTRIES') && !empty(GEO_BLOCK_FOR_WP_COUNTRIES)) {
+        geo_block_for_wp_handle(GEO_BLOCK_FOR_WP_COUNTRIES, $record->country->isoCode);
+    }
 } catch (AddressNotFoundException $ex) {
-    // Maybe development, so continue...
-    // wp_die('Not allowed!');
+    if (defined('GEO_BLOCK_FOR_WP_DIE_ON_ADDRESS_NOT_FOUND') && GEO_BLOCK_FOR_WP_DIE_ON_ADDRESS_NOT_FOUND) {
+        geo_block_for_wp_die();
+    }
 } catch (\Exception $ex) {
-    wp_die('Internal Server Error');
+    if (defined('GEO_BLOCK_FOR_WP_DIE_ON_EXCEPTION') && GEO_BLOCK_FOR_WP_DIE_ON_EXCEPTION) {
+        geo_block_for_wp_die('Internal server error');
+    }
 }
