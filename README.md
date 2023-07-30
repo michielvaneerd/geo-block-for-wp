@@ -87,3 +87,7 @@ Exit or continue if the IP address of the visitor is not present in the database
 Exit or continue on some other exception:
 
     define('GEO_BLOCK_FOR_WP_DIE_ON_EXCEPTION', true);
+
+Set `GEO_BLOCK_FOR_WP_DB_PATH` in the `wp-config.php` file to change the location of the database file:
+
+    define('GEO_BLOCK_FOR_WP_DB_PATH', '/my/path/to/GeoLite2-Country.mmdb');
