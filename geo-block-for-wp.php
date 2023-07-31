@@ -1,5 +1,15 @@
 <?php
 
+/*
+ * Plugin Name: Geo Block for WP
+ * Plugin URI: https://github.com/michielvaneerd/geo-block-for-wp
+ * Description: Wordpress Must Use (MU) plugin that can be used to block or allow countries and continents based on IP
+ * Version: 1.0.0
+ * Requires PHP: 7
+ * Author: Michiel van Eerd
+ * License: GPL2
+ */
+
 // Allowed contintent codes:
 // - AF – Africa
 // - AN – Antarctica
